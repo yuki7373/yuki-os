@@ -4,34 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Knowledge Board</title>
+<title>Yuki OS</title>
 
 <style>
+
 body{
     margin:0;
     background:#111;
     color:white;
     font-family:sans-serif;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
     text-align:center;
+    overflow:hidden;
+}
+
+#topbar{
+    position:fixed;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:100;
+}
+
+#topbar button{
+    background:#222;
+    color:white;
+    border:1px solid #444;
+    border-radius:8px;
+    padding:8px 12px;
+    margin:2px;
+    cursor:pointer;
 }
 
 #card{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
     width:90%;
 }
 
 #category{
     font-size:2rem;
-    color:#999;
+    color:#888;
     margin-bottom:30px;
 }
 
 #content{
     font-size:3rem;
     line-height:1.5;
+    white-space:pre-wrap;
 }
 
 #counter{
@@ -40,84 +61,209 @@ body{
     right:20px;
     color:#666;
 }
+
+#bottomBar{
+    position:fixed;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+}
+
+#bottomBar button{
+    background:#222;
+    color:white;
+    border:1px solid #444;
+    border-radius:8px;
+    padding:8px 12px;
+    margin:2px;
+    cursor:pointer;
+}
+
+.active{
+    border:2px solid #4caf50 !important;
+}
+
 </style>
 </head>
 
 <body>
 
+<div id="topbar">
+
+<button onclick="setCategory('all')">
+全部
+</button>
+
+<button onclick="setCategory('乙4')">
+乙4
+</button>
+
+<button onclick="setCategory('電験')">
+電験
+</button>
+
+<button onclick="setCategory('研究')">
+研究
+</button>
+
+<button onclick="setCategory('雑談')">
+雑談
+</button>
+
+<button onclick="showFavorites()">
+⭐
+</button>
+
+</div>
+
 <div id="card">
-    <div id="category"></div>
-    <div id="content">Loading...</div>
+
+<div id="category"></div>
+
+<div id="content">
+Loading...
+</div>
+
 </div>
 
 <div id="counter"></div>
 
+<div id="bottomBar">
+
+<button id="autoBtn">
+⏯ Auto
+</button>
+
+<button id="randomBtn">
+🎲 Random
+</button>
+
+<button id="favBtn">
+⭐ Save
+</button>
+
+</div>
+
 <script>
 
-const sheetId = "1fFhD0fDbbPV7WOCOFfYAVTqHTg9tcysTXNo2y9qNf_E";
+const sheetId =
+"1fFhD0fDbbPV7WOCOFfYAVTqHTg9tcysTXNo2y9qNf_E";
 
 const url =
 `https://opensheet.elk.sh/${sheetId}/シート1`;
 
+let allCards = [];
 let cards = [];
+
 let current = 0;
+
 let showingAnswer = false;
+
+let autoMode = true;
+
+let randomMode = true;
+
+let currentFilter = "all";
+
+let favoriteIds =
+JSON.parse(
+localStorage.getItem("favorites") || "[]"
+);
 
 async function loadData(){
 
     const res = await fetch(url);
-    cards = await res.json();
 
-    shuffle(cards);
+    allCards = await res.json();
+
+    allCards.forEach((card,index)=>{
+        card.id = index;
+    });
+
+    cards = [...allCards];
+
+    if(randomMode){
+        shuffle(cards);
+    }
 
     showCard();
 }
 
 function shuffle(array){
+
     for(let i=array.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [array[i],array[j]]=[array[j],array[i]];
+
+        const j =
+        Math.floor(
+            Math.random()*(i+1)
+        );
+
+        [array[i],array[j]]
+        =
+        [array[j],array[i]];
     }
 }
 
 function showCard(){
 
-    if(cards.length===0) return;
+    if(cards.length===0){
+
+        document.getElementById("content").innerText =
+        "データなし";
+
+        return;
+    }
 
     const card = cards[current];
 
     document.getElementById("category").innerText =
-        card.category || "";
+    card.category || "";
 
-    if(card.type==="quiz"){
+    if(card.type === "quiz"){
 
         if(showingAnswer){
+
             document.getElementById("content").innerText =
-                card.back;
+            card.back;
+
         }else{
+
             document.getElementById("content").innerText =
-                "Q.\n\n" + card.front;
+            "Q.\n\n" + card.front;
+
         }
 
     }else{
 
         document.getElementById("content").innerText =
-            card.front;
+        card.front;
+
     }
 
+    const isFavorite =
+    favoriteIds.includes(card.id);
+
+    document.getElementById("favBtn").innerText =
+    isFavorite
+    ? "⭐ Saved"
+    : "⭐ Save";
+
     document.getElementById("counter").innerText =
-        `${current+1}/${cards.length}`;
+    `${current+1}/${cards.length}`;
 }
 
 function nextCard(){
 
     current++;
 
-    if(current>=cards.length){
-        current=0;
+    if(current >= cards.length){
+
+        current = 0;
+
     }
 
-    showingAnswer=false;
+    showingAnswer = false;
+
     showCard();
 }
 
@@ -125,32 +271,184 @@ function prevCard(){
 
     current--;
 
-    if(current<0){
-        current=cards.length-1;
+    if(current < 0){
+
+        current = cards.length - 1;
+
     }
 
-    showingAnswer=false;
+    showingAnswer = false;
+
     showCard();
 }
 
+function setCategory(category){
+
+    currentFilter = category;
+
+    cards = allCards.filter(card => {
+
+        if(category === "all"){
+            return true;
+        }
+
+        return card.category === category;
+
+    });
+
+    current = 0;
+
+    showingAnswer = false;
+
+    if(randomMode){
+
+        shuffle(cards);
+
+    }
+
+    showCard();
+}
+
+function showFavorites(){
+
+    cards = allCards.filter(card =>
+        favoriteIds.includes(card.id)
+    );
+
+    current = 0;
+
+    showingAnswer = false;
+
+    showCard();
+}
+
+document
+.getElementById("favBtn")
+.addEventListener("click",()=>{
+
+    const card = cards[current];
+
+    if(favoriteIds.includes(card.id)){
+
+        favoriteIds =
+        favoriteIds.filter(
+            id => id !== card.id
+        );
+
+    }else{
+
+        favoriteIds.push(card.id);
+
+    }
+
+    localStorage.setItem(
+        "favorites",
+        JSON.stringify(favoriteIds)
+    );
+
+    showCard();
+});
+
+document
+.getElementById("autoBtn")
+.addEventListener("click",()=>{
+
+    autoMode = !autoMode;
+
+    document
+    .getElementById("autoBtn")
+    .classList.toggle(
+        "active",
+        autoMode
+    );
+
+});
+
+document
+.getElementById("randomBtn")
+.addEventListener("click",()=>{
+
+    randomMode = !randomMode;
+
+    document
+    .getElementById("randomBtn")
+    .classList.toggle(
+        "active",
+        randomMode
+    );
+
+});
+
 document.addEventListener("click",(e)=>{
 
-    const width = window.innerWidth;
+    if(
+        e.target.tagName === "BUTTON"
+    ){
+        return;
+    }
 
-    if(cards[current].type==="quiz" && !showingAnswer){
+    const width =
+    window.innerWidth;
 
-        showingAnswer=true;
+    if(
+        cards[current].type==="quiz"
+        &&
+        !showingAnswer
+    ){
+
+        showingAnswer = true;
+
         showCard();
+
         return;
     }
 
     if(e.clientX < width/2){
+
         prevCard();
+
     }else{
+
         nextCard();
+
     }
 
 });
+
+setInterval(()=>{
+
+    if(!autoMode){
+        return;
+    }
+
+    if(cards.length===0){
+        return;
+    }
+
+    const card =
+    cards[current];
+
+    if(card.type==="quiz"){
+
+        if(!showingAnswer){
+
+            showingAnswer=true;
+
+            showCard();
+
+        }else{
+
+            nextCard();
+
+        }
+
+    }else{
+
+        nextCard();
+
+    }
+
+},10000);
 
 loadData();
 
