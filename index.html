@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Knowledge Board</title>
+
+<style>
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    text-align:center;
+}
+
+#card{
+    width:90%;
+}
+
+#category{
+    font-size:2rem;
+    color:#999;
+    margin-bottom:30px;
+}
+
+#content{
+    font-size:3rem;
+    line-height:1.5;
+}
+
+#counter{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<div id="card">
+    <div id="category"></div>
+    <div id="content">Loading...</div>
+</div>
+
+<div id="counter"></div>
+
+<script>
+
+const sheetId = "1fFhD0fDbbPV7WOCOFfYAVTqHTg9tcysTXNo2y9qNf_E";
+
+const url =
+`https://opensheet.elk.sh/${sheetId}/シート1`;
+
+let cards = [];
+let current = 0;
+let showingAnswer = false;
+
+async function loadData(){
+
+    const res = await fetch(url);
+    cards = await res.json();
+
+    shuffle(cards);
+
+    showCard();
+}
+
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+    }
+}
+
+function showCard(){
+
+    if(cards.length===0) return;
+
+    const card = cards[current];
+
+    document.getElementById("category").innerText =
+        card.category || "";
+
+    if(card.type==="quiz"){
+
+        if(showingAnswer){
+            document.getElementById("content").innerText =
+                card.back;
+        }else{
+            document.getElementById("content").innerText =
+                "Q.\n\n" + card.front;
+        }
+
+    }else{
+
+        document.getElementById("content").innerText =
+            card.front;
+    }
+
+    document.getElementById("counter").innerText =
+        `${current+1}/${cards.length}`;
+}
+
+function nextCard(){
+
+    current++;
+
+    if(current>=cards.length){
+        current=0;
+    }
+
+    showingAnswer=false;
+    showCard();
+}
+
+function prevCard(){
+
+    current--;
+
+    if(current<0){
+        current=cards.length-1;
+    }
+
+    showingAnswer=false;
+    showCard();
+}
+
+document.addEventListener("click",(e)=>{
+
+    const width = window.innerWidth;
+
+    if(cards[current].type==="quiz" && !showingAnswer){
+
+        showingAnswer=true;
+        showCard();
+        return;
+    }
+
+    if(e.clientX < width/2){
+        prevCard();
+    }else{
+        nextCard();
+    }
+
+});
+
+loadData();
+
+</script>
+
+</body>
+</html>
