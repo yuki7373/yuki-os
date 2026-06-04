@@ -114,6 +114,10 @@ body{
 ⭐
 </button>
 
+<button onclick="openAddForm()">
+➕
+</button>
+
 </div>
 
 <div id="card">
@@ -140,6 +144,62 @@ Loading...
 
 <button id="favBtn">
 ⭐ Save
+</button>
+
+</div>
+
+<div id="addForm" style="
+display:none;
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:#222;
+padding:20px;
+border:1px solid #555;
+z-index:1000;
+">
+
+<h2>追加</h2>
+
+<select id="newType">
+<option value="memo">memo</option>
+<option value="quiz">quiz</option>
+</select>
+
+<br><br>
+
+<input id="newCategory"
+placeholder="カテゴリ">
+
+<br><br>
+
+<textarea id="newFront"
+placeholder="内容"
+rows="4"
+cols="30"></textarea>
+
+<br><br>
+
+<textarea id="newBack"
+placeholder="答え"
+rows="2"
+cols="30"></textarea>
+
+<br><br>
+
+<input id="newPriority"
+type="number"
+value="1">
+
+<br><br>
+
+<button onclick="saveCard()">
+保存
+</button>
+
+<button onclick="closeAddForm()">
+閉じる
 </button>
 
 </div>
@@ -449,6 +509,68 @@ setInterval(()=>{
     }
 
 },10000);
+
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbxU_hUhqR7vS2LUhRNXnXiAPgaK_Tut604Kumn0T-i4bq2kI4V35C4BiFNPJ0nyIZC13A/exec";
+
+function openAddForm(){
+
+    document
+    .getElementById("addForm")
+    .style.display="block";
+}
+
+function closeAddForm(){
+
+    document
+    .getElementById("addForm")
+    .style.display="none";
+}
+
+async function saveCard(){
+
+    const data = {
+
+        type:
+        document
+        .getElementById("newType")
+        .value,
+
+        category:
+        document
+        .getElementById("newCategory")
+        .value,
+
+        front:
+        document
+        .getElementById("newFront")
+        .value,
+
+        back:
+        document
+        .getElementById("newBack")
+        .value,
+
+        priority:
+        document
+        .getElementById("newPriority")
+        .value
+    };
+
+    await fetch(
+        GAS_URL,
+        {
+            method:"POST",
+            body:JSON.stringify(data)
+        }
+    );
+
+    alert("保存しました");
+
+    closeAddForm();
+
+    loadData();
+}
 
 loadData();
 
