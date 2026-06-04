@@ -92,38 +92,8 @@ body{
 
 <body>
 
-<div id="topbar">
-
-<button onclick="setCategory('all')">
-全部
-</button>
-
-<button onclick="setCategory('乙4')">
-乙4
-</button>
-
-<button onclick="setCategory('電験')">
-電験
-</button>
-
-<button onclick="setCategory('研究')">
-研究
-</button>
-
-<button onclick="setCategory('雑談')">
-雑談
-</button>
-
-<button onclick="showFavorites()">
-⭐
-</button>
-
-<button onclick="openAddForm()">
-➕
-</button>
-
-</div>
-
+<div id="topbar"></div>
+    
 <div id="card">
 
 <div id="category"></div>
@@ -243,6 +213,8 @@ async function loadData(){
     allCards.forEach((card,index)=>{
         card.id = index;
     });
+
+    createCategoryButtons();
 
     cards = [...allCards];
 
@@ -571,12 +543,52 @@ async function saveCard(){
 
     alert("保存しました");
 
-    closeAddForm();
+allCards.push({
+    ...data,
+    id: allCards.length
+});
 
-    loadData();
+createCategoryButtons();
+
+closeAddForm();
+
+loadData();
 }
 
 loadData();
+
+function createCategoryButtons(){
+
+    const topbar =
+    document.getElementById("topbar");
+
+    topbar.innerHTML = "";
+
+    topbar.innerHTML += `
+    <button onclick="setCategory('all')">
+    全部
+    </button>
+    `;
+
+    const categories =
+    [...new Set(
+        allCards.map(c=>c.category)
+    )];
+
+    categories.forEach(category=>{
+
+        topbar.innerHTML += `
+        <button onclick="setCategory('${category}')">
+        ${category}
+        </button>
+        `;
+    });
+
+    topbar.innerHTML += `
+    <button onclick="showFavorites()">⭐</button>
+    <button onclick="openAddForm()">➕</button>
+    `;
+}
 
 </script>
 
