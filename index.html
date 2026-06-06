@@ -83,6 +83,15 @@ body{
     cursor:pointer;
 }
 
+#bottomBar select{
+    background:#222;
+    color:white;
+    border:1px solid #444;
+    border-radius:8px;
+    padding:8px 12px;
+    margin:2px;
+}
+
 .active{
     border:2px solid #4caf50 !important;
 }
@@ -100,6 +109,17 @@ body{
 
 <div id="content">
 Loading...
+</div>
+
+<div id="slideContainer" style="display:none;">
+    <iframe
+        id="slideFrame"
+        src=""
+        width="100%"
+        height="800"
+        frameborder="0"
+        allowfullscreen>
+    </iframe>
 </div>
 
 </div>
@@ -120,6 +140,13 @@ Loading...
 ⭐ Save
 </button>
 
+<select id="speedSelect">
+    <option value="3000">3秒</option>
+    <option value="5000" selected>5秒</option>
+    <option value="10000">10秒</option>
+    <option value="30000">30秒</option>
+</select>
+
 </div>
 
 <div id="addForm" style="
@@ -139,6 +166,7 @@ z-index:1000;
 <select id="newType">
 <option value="memo">memo</option>
 <option value="quiz">quiz</option>
+<option value="slide">slide</option>
 </select>
 
 <br><br>
@@ -197,6 +225,8 @@ let autoMode = true;
 
 let randomMode = true;
 
+let autoTime = 5000;
+
 let currentFilter = "all";
 
 let favoriteIds =
@@ -251,11 +281,29 @@ function showCard(){
     }
 
     const card = cards[current];
+    const content =
+    document.getElementById("content");
+
+    const slideContainer =
+    document.getElementById("slideContainer");
+
+    content.style.display = "block";
+    slideContainer.style.display = "none";
 
     document.getElementById("category").innerText =
     card.category || "";
 
-    if(card.type === "quiz"){
+    if(card.type === "slide"){
+
+    content.style.display = "none";
+
+    slideContainer.style.display = "block";
+
+    document.getElementById("slideFrame").src =
+    card.front;
+
+}
+else if(card.type === "quiz"){
 
         if(showingAnswer){
 
@@ -415,6 +463,15 @@ document
 
 });
 
+document
+.getElementById("speedSelect")
+.addEventListener("change",(e)=>{
+
+    autoTime =
+    Number(e.target.value);
+
+});
+
 document.addEventListener("click",(e)=>{
 
     if(
@@ -451,40 +508,53 @@ document.addEventListener("click",(e)=>{
 
 });
 
-setInterval(()=>{
+function autoLoop(){
 
-    if(!autoMode){
-        return;
+    let waitTime = autoTime;
+
+    if(
+        cards.length &&
+        cards[current].type==="slide"
+    ){
+        waitTime = autoTime;
     }
 
-    if(cards.length===0){
-        return;
-    }
+    setTimeout(()=>{
 
-    const card =
-    cards[current];
+        if(autoMode){
 
-    if(card.type==="quiz"){
+            if(cards.length){
 
-        if(!showingAnswer){
+                const card =
+                cards[current];
 
-            showingAnswer=true;
+                if(
+                    card.type==="quiz"
+                    &&
+                    !showingAnswer
+                ){
 
-            showCard();
+                    showingAnswer=true;
 
-        }else{
+                    showCard();
 
-            nextCard();
+                }else{
 
+                    nextCard();
+
+                }
+
+            }
         }
 
-    }else{
+        autoLoop();
 
-        nextCard();
+    },waitTime);
 
-    }
+}
 
-},10000);
+autoLoop();
+
 
 const GAS_URL =
 "https://script.google.com/macros/s/AKfycbxU_hUhqR7vS2LUhRNXnXiAPgaK_Tut604Kumn0T-i4bq2kI4V35C4BiFNPJ0nyIZC13A/exec";
