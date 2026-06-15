@@ -129,6 +129,17 @@ Loading...
     </iframe>
 </div>
 
+<div id="imageContainer" style="display:none;">
+    <img
+        id="imageFrame"
+        src=""
+        style="
+        max-width:100%;
+        max-height:80vh;
+        object-fit:contain;
+        ">
+</div>
+
 </div>
 
 <div id="counter"></div>
@@ -174,6 +185,7 @@ z-index:1000;
 <option value="memo">memo</option>
 <option value="quiz">quiz</option>
 <option value="slide">slide</option>
+<option value="image">image</option>
 </select>
 
 <br><br>
@@ -309,45 +321,61 @@ function showCard(){
     const content =
     document.getElementById("content");
 
-    const slideContainer =
-    document.getElementById("slideContainer");
+const slideContainer =
+document.getElementById("slideContainer");
 
-    content.style.display = "block";
-    slideContainer.style.display = "none";
+const imageContainer =
+document.getElementById("imageContainer");
+
+content.style.display = "block";
+slideContainer.style.display = "none";
+imageContainer.style.display = "none";
 
     document.getElementById("category").innerText =
     card.category || "";
+if(card.type === "image"){
 
-    if(card.type === "slide"){
+    content.style.display = "none";
+
+    imageContainer.style.display = "block";
+
+    document.getElementById(
+        "imageFrame"
+    ).src = card.front;
+
+}
+else if(card.type === "slide"){
 
     content.style.display = "none";
 
     slideContainer.style.display = "block";
 
-    document.getElementById("slideFrame").src =
-    card.front;
+    document.getElementById(
+        "slideFrame"
+    ).src = card.front;
 
 }
 else if(card.type === "quiz"){
 
-        if(showingAnswer){
+    if(showingAnswer){
 
-            document.getElementById("content").innerText =
-            card.back;
-
-        }else{
-
-            document.getElementById("content").innerText =
-            "Q.\n\n" + card.front;
-
-        }
+        content.innerText =
+        card.back;
 
     }else{
 
-        document.getElementById("content").innerText =
-        card.front;
+        content.innerText =
+        "Q.\n\n" + card.front;
 
     }
+
+}
+else{
+
+    content.innerText =
+    card.front;
+
+}
 
     const isFavorite =
     favoriteIds.includes(card.id);
